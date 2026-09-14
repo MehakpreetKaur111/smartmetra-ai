@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartMetra AI — AI Compliance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <!-- ============ LANDING / LOGIN PAGE ============ -->
+    <div id="loginPage">
+        <header class="landing-header">
+            <div class="landing-brand">
+                <div class="landing-logo"><i class="fas fa-shield-halved"></i></div>
+                <div>
+                    <div class="landing-title">SmartMetra</div>
+                    <div class="landing-sub">AI COMPLIANCE</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="openAuthModal('signin','consumer')">Sign in</button>
+        </header>
+
+        <section class="landing-hero">
+            <span class="pill">Evidence-first · Explainable · Human-verifiable</span>
+            <h1 class="hero-heading">One platform for consumers,<br/>companies, and government.</h1>
+            <p class="hero-sub">Scan a real package, extract its declarations with OCR, identify and classify the product, and carry the same evidence from inspection to complaint to resolution.</p>
+            <div class="hero-actions">
+                <button class="btn btn-primary btn-lg" onclick="openAuthModal('signup','consumer')">Create an account <i class="fas fa-arrow-right"></i></button>
+                <button class="btn btn-secondary btn-lg" onclick="continueWithGoogle()">Continue with Google</button>
+            </div>
+        </section>
+
+        <section class="role-section">
+            <div class="role-grid">
+                <div class="role-card" data-role="consumer" onclick="selectRole('consumer')">
+                    <span class="role-icon"><i class="fas fa-user"></i></span>
+                    <div class="role-name">Consumer</div>
+                    <div class="role-desc">Scan products, check labels, and file complaints.</div>
+                </div>
+                <div class="role-card" data-role="company" onclick="selectRole('company')">
+                    <span class="role-icon"><i class="fas fa-building"></i></span>
+                    <div class="role-name">Company</div>
+                    <div class="role-desc">Register products and respond to complaints.</div>
+                </div>
+                <div class="role-card" data-role="government" onclick="selectRole('government')">
+                    <span class="role-icon"><i class="fas fa-landmark"></i></span>
+                    <div class="role-name">Government</div>
+                    <div class="role-desc">Run inspections, investigate, and resolve.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="feature-strip">
+            <div class="feature-item">
+                <span class="feature-icon"><i class="fas fa-expand"></i></span>
+                <div>
+                    <div class="feature-title">Scan &amp; understand</div>
+                    <div class="feature-desc">Upload real package images. Quality checks and OCR run on the actual evidence.</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon"><i class="fas fa-file-lines"></i></span>
+                <div>
+                    <div class="feature-title">Check &amp; explain</div>
+                    <div class="feature-desc">Extracted declarations carry confidence levels. Unknowns stay unknown — never guessed.</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon"><i class="fas fa-comment-dots"></i></span>
+                <div>
+                    <div class="feature-title">Complain &amp; resolve</div>
+                    <div class="feature-desc">Complaints stay linked to their inspection evidence from consumer to company to regulator.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ APP SHELL (only after login) ============ -->
+    <div id="appShell" style="display:none">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-icon"><i class="fas fa-shield-halved"></i></div>
+                <div>
+                    <div class="brand-text">SmartMetra</div>
+                    <div class="role-tag">AI COMPLIANCE</div>
+                </div>
+            </div>
+
+            <div class="signed-in-box">
+                <div class="signed-in-icon"><i class="fas fa-id-badge"></i></div>
+                <div>
+                    <div class="signed-in-label">SIGNED IN AS</div>
+                    <div class="signed-in-role" id="sidebarRoleTag">Consumer</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section-label">WORKSPACE</div>
+            <nav class="sidebar-nav" id="sidebarNav"></nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="logout()" title="Sign out">
+                    <i class="fas fa-sign-out-alt"></i> <span>Sign out</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content" id="mainContent">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <span class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></span>
+                    <div class="breadcrumb">
+                        <span id="breadcrumbRoot">Consumer workspace</span>
+                        <i class="fas fa-chevron-right"></i>
+                        <strong id="pageTitle">Overview</strong>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="notification-wrapper">
+                        <button class="topbar-icon-btn notification-btn" id="notificationBtn" title="Notifications" aria-label="Open notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count" id="notificationCount">0</span>
+                        </button>
+                        <div class="notification-panel" id="notificationPanel" aria-live="polite">
+                            <div class="notification-header">
+                                <strong>Notifications</strong>
+                                <button class="notification-clear" id="clearNotificationsBtn" type="button">Clear</button>
+                            </div>
+                            <div class="notification-list" id="notificationList"></div>
+                        </div>
+                    </div>
+                    <div class="topbar-user">
+                        <div class="topbar-avatar" id="userAvatar">M</div>
+                        <div class="topbar-userid" id="userName">mk3174824</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert-banner" id="alertBanner">
+                <span>Signed in.</span>
+                <button class="alert-close" onclick="document.getElementById('alertBanner').style.display='none'"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div id="pageContainer"></div>
+
+            <div class="disclaimer">
+                <i class="fas fa-info-circle"></i>
+                <span>SmartMetra AI is an evidence-driven decision-support system for Legal Metrology (Packaged Commodities) Rules, 2011. AI never invents product data. Missing text is shown as NOT DETECTED. Potential issues require human verification.</span>
+            </div>
+        </main>
+    </div>
+
+    <button class="chat-fab" id="chatFab" onclick="toggleChat()" style="display:none"><i class="fas fa-robot"></i></button>
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <div class="chat-title"><i class="fas fa-robot"></i> SmartMetra Copilot</div>
+            <span class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg bot">I only answer from the current inspection, stored records, and Legal Metrology Rules, 2011. I will not invent MRP, brand, or violations.</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Ask about this inspection..." />
+            <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal-box">
+            <div class="modal-header"><h3>Visual evidence</h3><span class="modal-close" onclick="closeEvidenceModal()">&times;</span></div>
+            <div id="evidenceContent"></div>
+            <div id="evidenceDetail" class="mt-4"></div>
+            <div class="flex gap-2" style="justify-content:flex-end;flex-wrap:wrap;margin-top:12px;">
+                <button class="btn btn-secondary" onclick="closeEvidenceModal()">Close</button>
+                <button class="btn btn-success" id="evidenceVerifyBtn" type="button"><i class="fas fa-check"></i> Confirm finding</button>
+                <button class="btn btn-danger" id="evidenceRejectBtn" type="button">Mark false positive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ AUTH MODAL (Create account / Sign in) ============ -->
+    <div class="auth-overlay" id="authModal">
+        <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+            <button class="auth-close" type="button" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+
+            <h2 class="auth-title" id="authTitle">Create your account</h2>
+            <p class="auth-sub" id="authSub">Choose how you will use SmartMetra.</p>
+
+            <div class="auth-roles" id="authRoles">
+                <button type="button" class="auth-role" data-role="consumer" onclick="setAuthRole('consumer')">
+                    <i class="fas fa-clipboard-check"></i><span>Consumer</span>
+                </button>
+                <button type="button" class="auth-role" data-role="company" onclick="setAuthRole('company')">
+                    <i class="fas fa-building"></i><span>Company</span>
+                </button>
+                <button type="button" class="auth-role" data-role="government" onclick="setAuthRole('government')">
+                    <i class="fas fa-landmark"></i><span>Government</span>
+                </button>
+            </div>
+
+            <div class="auth-fields">
+                <input id="authOrg" class="auth-input" type="text" placeholder="Company name (used to route complaints)" style="display:none" />
+                <input id="authEmail" class="auth-input" type="email" placeholder="Email" autocomplete="email" />
+                <input id="authPassword" class="auth-input" type="password" placeholder="Password" autocomplete="current-password" />
+                <div class="auth-error" id="authError" style="display:none"></div>
+
+                <button class="auth-submit" id="authSubmit" type="button" onclick="submitAuth()">Create consumer account</button>
+
+                <button class="auth-google" type="button" onclick="continueWithGoogle()">
+                    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+            </div>
+
+            <div class="auth-foot">
+                <span id="authSwitchText">Already have an account?</span>
+                <a href="#" id="authSwitchLink" onclick="toggleAuthMode(event)">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MOCK GOOGLE ACCOUNT CHOOSER ============ -->
+    <div class="g-overlay" id="googleModal">
+        <div class="g-card" role="dialog" aria-modal="true">
+            <div class="g-head">
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Sign in with Google</span>
+            </div>
+            <p class="g-sub">Choose an account to continue to <strong>SmartMetra</strong></p>
+            <div class="g-accounts" id="gAccounts"></div>
+            <button class="g-cancel" type="button" onclick="cancelGoogle()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="toastStack" class="toast-stack"></div>
+    <script src="app.js"></script>
+</body>
+</html>
